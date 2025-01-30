@@ -39,3 +39,7 @@
 
 # Built Visual Studio Code Extensions
 *.vsix
+
+# Build and output
+output/
+*.csv
