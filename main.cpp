@@ -6,28 +6,29 @@
 
 using namespace std;
 
-// Compara strings (case insensitive  (eu deveria tornar diacritic insensitive tbm))
-int compararStrings(string& str1, string& str2){
-    int tamanho = str1.length(); 
-    for(int i = 0; i <= tamanho; i++){    // Atravessa os índices da primeira string (incluindo o "seguinte" ao último)
-        if (tolower(str1[i]) > tolower(str2[i]))
-            return 1;   // A 1a string é maior que a 2a; retorna 1
-        else if (tolower(str1[i]) < tolower(str2[i]))
-            return -1;  // A 1a string é menor que a 2a; retorna -1
+// ToDo: tornar diacritic insensitive
+int compararStrings(string& str1, string& str2) {
+    int tamanhoStr1 = str1.length(); 
+    for(int i = 0; i <= tamanhoStr1; i++) { // <=, pois se str1 for mais curta, 
+                                            // o índice seguinte ao seu ultimo char retorna -1
+        if (tolower(str1[i]) > tolower(str2[i])) {
+            return 1;   // str1 > str2
+        } else if (tolower(str1[i]) < tolower(str2[i])) {
+            return -1;  // str1 < str2
+        }
     }
-    return 0;   // Todos os caracteres são iguais; retorna 0
+    return 0;   // str1 = str2
 }
 
-class Contato{
+class Contato {
 public:
     string nome;
     string telefone;
     string email;
 
-    Contato(){
-    }
+    Contato(){};
 
-    Contato(string nome, string telefone, string email){
+    Contato(string nome, string telefone, string email) {
         this->nome = nome;
         this->telefone = telefone;
         this->email = email;
@@ -49,12 +50,12 @@ public:
     }
 };
 
-class ArvoreAVL{
+class ArvoreAvl{
 private:
     Node* raiz;
 
 public:
-    ArvoreAVL() {
+    ArvoreAvl() {
         raiz = nullptr;
     }
 
@@ -82,77 +83,75 @@ public:
         preOrdem(raiz);
     }
 
-    // Faz a exportação dos contatos para um csv
-    int exportarContatos(string endereco, string nome){
-        endereco = endereco == "" ? endereco : endereco + "/"; // endereço do diretório; se não for dado, é o diretório do executavel
-        nome = nome == "" ? "contatos.csv" : nome + ".csv"; // nome do arquivo a ser criado + extensão .csv; se não for dado, é 'contatos.csv'
-        ofstream fout;
-        fout.open(endereco + nome); // abrir o filestream no endereço
-        if(fout.is_open()){ // foi possível acessar o arquivo
-            escreverEmOrdem(raiz, fout); // escrever no arquivo
-            fout.close();
-            return 0; // sucesso; retornar 0
-        } else{ // não foi possível acessar o endereço
-            fout.close();
-            return -1; // falha; retornar -1
+    int exportarContatos(string endereco, string nome) {
+        endereco = endereco == "" ? endereco : endereco + "/"; //se não for dado, é o dir. da execução
+        nome = nome == "" ? "contatos.csv" : nome + ".csv"; // se não for dado, é 'contatos.csv'
+        ofstream fileOut;
+        fileOut.open(endereco + nome);
+        if(fileOut.is_open()) {
+            escreverEmOrdem(raiz, fileOut);
+            fileOut.close();
+            return 0;
+        } else { 
+            fileOut.close();
+            return -1;
         }
         
     }
 
     // Faz a importação de um csv para a árvore
-    int importarContatos(string endereco){
-        endereco = endereco == "" ? "contatos.csv" : endereco; // endereço do arquivo; se não for dado é o contatos.csv do diretorio do exe
-        ifstream fin;
-        fin.open(endereco); // abre o filestream no endereço
-        if (fin.is_open()){ // foi possível acessar o arquivo
+    int importarContatos(string endereco) {
+        endereco = endereco == "" ? "contatos.csv" : endereco; // se não for dado é o contatos.csv do dir. da execução
+        ifstream fileIn;
+        fileIn.open(endereco); 
+        if (fileIn.is_open()) {
             string linha;
 
-            while(getline(fin, linha)){ // a cada linha
-                stringstream str(linha); // criar stream da linha
+            while(getline(fileIn, linha)) {
+                stringstream str(linha);
                 string nome, telefone, email;
-                getline(str,nome,','); // atribuir os dados entre virgulas a variaveis
+                getline(str,nome,',');
                 getline(str,telefone,',');
                 str >> email;
-                inserir(Contato(nome,telefone,email)); // inserir na árvore um contato com os dados
+                inserir(Contato(nome,telefone,email));
             }
-            fin.close(); 
-            return 0; // retornar 0
+            fileIn.close(); 
+            return 0; 
         } else{
-            fin.close();
-            return -1; // retornar -1
+            fileIn.close();
+            return -1;
         }
     }
 
 private: 
 
-    // Retorna a altura de um node
-    int altura(Node* node){
-        if (node == nullptr){ // o node não existe
+    int getAltura(Node* node) {
+        if (node == nullptr) { 
             return 0;
         }
         return node->altura;
     }
 
     // Retorna a diferença de altura entre o ramo da direita e o da esquerda
-    int balanco(Node* node){
-        if (node == nullptr)    // o node não existe
-            return 0; 
-        return altura(node->dir) - altura(node->esq);   // direita - esquerda
+    int getBalanco(Node* node) {
+        if (node == nullptr) {
+            return 0;
+        }
+        return getAltura(node->dir) - getAltura(node->esq);   // direita - esquerda
     }
 
     // Rotação para a direita
-    Node* rodarDir(Node* y){
+    Node* rodarDir(Node* y) {
         Node *x = y->esq;
         Node *T2 = x->dir;
 
         x->dir = y;
         y->esq = T2;
 
-        y->altura = 1 + max(altura(y->esq), altura(y->dir));
-        x->altura = 1 + max(altura(x->esq), altura(x->dir)); 
+        y->altura = 1 + max(getAltura(y->esq), getAltura(y->dir));
+        x->altura = 1 + max(getAltura(x->esq), getAltura(x->dir)); 
 
         return x;
-
     }
 
     // Rotação para a esquerda
@@ -163,33 +162,33 @@ private:
         y->esq = x;
         x->dir = temp;
     
-        x->altura = 1 + max(altura(x->esq), altura(x->dir)); 
-        y->altura = 1 + max(altura(y->esq), altura(y->dir));
+        x->altura = 1 + max(getAltura(x->esq), getAltura(x->dir)); 
+        y->altura = 1 + max(getAltura(y->esq), getAltura(y->dir));
 
         return y;
     }
 
     // Balanceia a árvore conforme o caso de desequilíbrio
-    Node* balanceamento(Node* node){
+    Node* balancear(Node* node){
 
-        int diferenca = balanco(node);  // cálculo da diferença de altura entre os dois ramos (dir-esq)
-        int diferencaDir = balanco(node->dir);
-        int diferencaEsq = balanco(node->esq);
+        int diferenca = getBalanco(node);  // diferença de altura entre os dois ramos (dir-esq)
+        int diferencaDir = getBalanco(node->dir);
+        int diferencaEsq = getBalanco(node->esq);
         
-        if (diferenca > 1 && diferencaDir >= 0)     // desbalanceamento entre ramos é para a direita (2)
+        if (diferenca > 1 && diferencaDir >= 0) {   // desbalanceamento entre ramos é para a direita (2)
                                                     // ramo da direita balanceado ou desb. para a direita (0 ou 1) 
             return rodarEsq(node);  // rotação simples para a esquerda                      
-
-        if (diferenca < -1 && diferencaEsq <= 0)    // desbalanceamento entre ramos é para a esquerda (-2)
+        }
+        if (diferenca < -1 && diferencaEsq <= 0) {  // desbalanceamento entre ramos é para a esquerda (-2)
                                                     // ramo da esquerda balanceado ou desb. para a esquerda (0 ou -1)
             return rodarDir(node);  // rotação simples para a direita
-
-        if (diferenca > 1 && diferencaDir < 0){     // desbalanceamento entre ramos é para a direita (2)
+        }
+        if (diferenca > 1 && diferencaDir < 0) {     // desbalanceamento entre ramos é para a direita (2)
                                                     // desbalanceamento no ramo da direita é para a esquerda (-1)
             node->dir = rodarDir(node->dir);    // rotação para a direita no ramo da direita
             return rodarEsq(node);              // rotação geral para a esquerda
         }
-        if (diferenca < -1 && diferencaEsq > 0){    // desbalanceamento entre ramos é para a esquerda (-2)
+        if (diferenca < -1 && diferencaEsq > 0) {    // desbalanceamento entre ramos é para a esquerda (-2)
                                                     // desbalanceamento no ramo da esquerda é para a direita (1)
             node->esq = rodarEsq(node->esq);    // rotação para a esquerda no ramo da esquerda
             return rodarDir(node); // rotação geral para a direita
@@ -199,7 +198,7 @@ private:
     }
 
     // Retorna o node mais à esquerda do ramo
-    Node* menorNode(Node* node){ 
+    Node* getMenorNode(Node* node){ 
         Node * atual = node;
 
         while (atual->esq != nullptr)
@@ -221,9 +220,9 @@ private:
         else
             return node; // mesmo nome; não adicionar [capaz d'eu mudar isso]
 
-        node->altura = 1 + max(altura(node->esq), altura(node->dir)); // a altura do node atual é a altura do ramo mais alto + sua própria (1)
+        node->altura = 1 + max(getAltura(node->esq), getAltura(node->dir)); // a altura do node atual é a altura do ramo mais alto + sua própria (1)
 
-        return balanceamento(node); // balanceamento após a inserção
+        return balancear(node); // balanceamento após a inserção
 
     }
 
@@ -248,7 +247,7 @@ private:
 
                 free(temp); // liberar o espaço ocupado pelo temporário
             }else{  // o node tem dois filhos
-                Node* temp = menorNode(node->dir); 
+                Node* temp = getMenorNode(node->dir); 
                 node->contato = temp->contato;  // mover o conteúdo do menor node do ramo da direita para o node atual
                 node->dir = remocao(node->dir, temp->contato.nome); // recursão para remover o item movido
             }
@@ -257,9 +256,9 @@ private:
         if (node == nullptr) // a árvore só tinha um node, que foi removido
             return node;
 
-        node->altura = 1 + max(altura(node->esq), altura(node->dir)); // cálculo da altura dos nodes
+        node->altura = 1 + max(getAltura(node->esq), getAltura(node->dir)); // cálculo da altura dos nodes
 
-        return balanceamento(node);     // balanceamento
+        return balancear(node);     // balanceamento
 
     }
 
@@ -311,7 +310,7 @@ private:
 };
 
 int main(){
-    ArvoreAVL arvere = ArvoreAVL();
+    ArvoreAvl arvere = ArvoreAvl();
     list<Contato> favoritos;   // lista dos contatos favoritos (copias dos dados nas árvores)
     // [em um caso da exclusão da árvore, um contato é copiado de um node para o outro sem que aquele [node] troque de lugar com este, sendo apenas excuído;
     // em consequencia, dados referenciados por ponteiros podem ser afetados;
@@ -341,8 +340,8 @@ int main(){
             cout << "E-mail: ";
             getline(cin, email);
 
-            Contato cont = Contato(nome,telefone,email); // criar o objeto
-            arvere.inserir(cont); // inserir o objeto
+            Contato contato = Contato(nome,telefone,email); // criar o objeto
+            arvere.inserir(contato); // inserir o objeto
         } else if (opcao == '2'){ // remoção
             string nome;
             cout << "Nome do contato: ";
@@ -359,9 +358,9 @@ int main(){
             string nome;
             cout << "Nome do contato: ";
             getline(cin, nome); // receber o nome
-            Contato* cont = arvere.buscar(nome); // buscar pelo nome
-            if (cont != NULL) // há item com esse nome, imprimir os dados
-                cout << "Nome: " << cont->nome << ";\t Telefone: " << cont->telefone << ";\t E-mail:" << cont->email << ";" << endl;
+            Contato* contato = arvere.buscar(nome); // buscar pelo nome
+            if (contato != NULL) // há item com esse nome, imprimir os dados
+                cout << "Nome: " << contato->nome << ";\t Telefone: " << contato->telefone << ";\t E-mail:" << contato->email << ";" << endl;
             else // não há item com esse nome;
                 cout << "Não encontrado" << endl;
         } else if (opcao == '4'){ // listagem
@@ -410,15 +409,15 @@ int main(){
                 string nome;
                 cout << "Nome do contato: ";
                 getline(cin, nome); // receber o nome
-                Contato* cont;
+                Contato* contato;
                 for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){ // itera a lista em busca do nome
                     if (compararStrings(iter->nome, nome) == 0){
-                        cont = &(*iter);
+                        contato = &(*iter);
                         break;
                     }
                 }
-                if (cont != NULL) // favorito encontrado; imprimir dados
-                    cout << "Nome: " << cont->nome << ";\t Telefone: " << cont->telefone << ";\t E-mail:" << cont->email << ";" << endl;
+                if (contato != NULL) // favorito encontrado; imprimir dados
+                    cout << "Nome: " << contato->nome << ";\t Telefone: " << contato->telefone << ";\t E-mail:" << contato->email << ";" << endl;
                 else // favorito não encontrado
                     cout << "Não encontrado" << endl;
             } else if (opcaoFavs == '4'){ // listagem
