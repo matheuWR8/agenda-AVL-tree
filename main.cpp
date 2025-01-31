@@ -198,127 +198,123 @@ private:
     }
 
     // Retorna o node mais à esquerda do ramo
-    Node* getMenorNode(Node* node){ 
+    Node* getMenorNode(Node* node) { 
         Node * atual = node;
 
-        while (atual->esq != nullptr)
+        while (atual->esq != nullptr) {
             atual = atual ->esq;
+        }
 
         return atual;
     }
 
     // Inserção de um node
-    Node* insercao (Node* node, Contato dados){
+    Node* insercao (Node* node, Contato dados) {
 
-        if (node == nullptr)    // o node atual não existe
+        if (node == nullptr) {   // o node atual não existe
             return new Node(dados);     // criar novo node com o contato
-
-        if (compararStrings(dados.nome, node->contato.nome) < 0)    // o nome do contato inserido é menor que o do node atual
+        }
+        if (compararStrings(dados.nome, node->contato.nome) < 0) {
             node->esq = insercao(node->esq, dados); // recursão para a esquerda
-        else if (compararStrings(dados.nome, node->contato.nome) > 0)   // nome maior que do node atual
+        } else if (compararStrings(dados.nome, node->contato.nome) > 0) {
             node->dir = insercao(node->dir, dados); // recursão para a direita
-        else
-            return node; // mesmo nome; não adicionar [capaz d'eu mudar isso]
-
+        } else {
+            return node;
+        }
         node->altura = 1 + max(getAltura(node->esq), getAltura(node->dir)); // a altura do node atual é a altura do ramo mais alto + sua própria (1)
 
         return balancear(node); // balanceamento após a inserção
-
     }
 
     // Remoção de um node
-    Node* remocao(Node* node, string nome){
+    Node* remocao(Node* node, string nome) {
 
-        if (node == nullptr) // o node não existe; não há remoção
+        if (node == nullptr) { // o node não existe; não há remoção
             return node;
-
-        if (compararStrings(nome, node->contato.nome) < 0)  // o item buscado está à esquerda do node atual
+        }
+        if (compararStrings(nome, node->contato.nome) < 0) { 
             node->esq = remocao(node->esq, nome); // recursão para a esquerda
-        else if (compararStrings(nome, node->contato.nome) > 0) // o item buscado está à direita do node atual
+        } else if (compararStrings(nome, node->contato.nome) > 0) {
             node->dir = remocao(node->dir, nome); // recursão para a direita
-        else{   // item encontrado; seguir com a remoção
-            if (node->esq == nullptr || node->dir == nullptr){ // o node tem um ou nenhum filho
+        } else {
+            if (node->esq == nullptr || node->dir == nullptr) { // o node tem um ou nenhum filho
                 Node* temp = node->esq ? node->esq : node->dir;
-                if (temp == nullptr){ // node não tem filhos
-                    temp = node;    // mover endereço do node para o ponteiro temporário
-                    node = nullptr; // remover o endereço do node da árvore
-                } else 
+                if (temp == nullptr) { // node não tem filhos
+                    temp = node;    
+                    node = nullptr;
+                } else {
                     *node = *temp; // mover o conteúdo do filho para o node-pai
-
-                free(temp); // liberar o espaço ocupado pelo temporário
-            }else{  // o node tem dois filhos
+                }
+                free(temp);
+            } else {  // o node tem dois filhos
                 Node* temp = getMenorNode(node->dir); 
-                node->contato = temp->contato;  // mover o conteúdo do menor node do ramo da direita para o node atual
-                node->dir = remocao(node->dir, temp->contato.nome); // recursão para remover o item movido
+                node->contato = temp->contato;  
+                node->dir = remocao(node->dir, temp->contato.nome); 
             }
         }
 
-        if (node == nullptr) // a árvore só tinha um node, que foi removido
+        if (node == nullptr) {
             return node;
+        }
+        node->altura = 1 + max(getAltura(node->esq), getAltura(node->dir));
 
-        node->altura = 1 + max(getAltura(node->esq), getAltura(node->dir)); // cálculo da altura dos nodes
-
-        return balancear(node);     // balanceamento
+        return balancear(node);
 
     }
 
     // Busca pelo nome
-    Node* busca(Node* node, string nome){
-        if (node == NULL || compararStrings(node->contato.nome,nome) == 0) // item encontrado
+    Node* busca(Node* node, string nome) {
+        if (node == NULL || compararStrings(node->contato.nome,nome) == 0) { // item encontrado
             return node;
-        
-        if (compararStrings(node->contato.nome,nome) < 0) // item está à direita
+        }
+        if (compararStrings(node->contato.nome,nome) < 0) { 
             return busca(node->dir, nome); // recursão para a direita
-
-        return busca(node->esq, nome); // item está à esquerda; recursão para a esquerda
-
+        }
+        return busca(node->esq, nome); // recursão para a esquerda
     }
 
     // Imprimem os nomes seguindo as tres leituras da árvore
-    void emOrdem(Node* node){
-        if (node != nullptr){ // se a raíz existe
+    void emOrdem(Node* node) {
+        if (node != nullptr) { 
             emOrdem(node->esq); // recursivamente ir até o menor item, o que está mais à esquerda
-            cout << node->contato.nome << endl; // imprimir o conteúdo do pai
+            cout << node->contato.nome << endl;
             emOrdem(node->dir); // repetir para o ramo irmão da direita
         }
     }
 
-    void preOrdem(Node* node){
-        if (node != nullptr){ // se a raíz existe
-            cout << node->contato.nome << endl; // imprimir o conteúdo da raiz
+    void preOrdem(Node* node) {
+        if (node != nullptr) {
+            cout << node->contato.nome << endl;
             preOrdem(node->esq); // seguir para os ramos a esquerda
             preOrdem(node->dir); // repetir para os irmaos da direita
         }
     }
 
-    void posOrdem(Node* node){
-        if (node != nullptr){ // se a raíz existe
+    void posOrdem(Node* node) {
+        if (node != nullptr) {
             posOrdem(node->esq); // imprimir o filho da esquerda
             posOrdem(node->dir); // imprimir seu irmao da direita
-            cout << node->contato.nome << endl; // imprimir o conteúdo do pai
+            cout << node->contato.nome << endl; 
         }
     }
 
     // Escreve na stream de saída o os dados em csv
-    void escreverEmOrdem(Node* node, ofstream& out){
-        if (node != nullptr){ // se a raíz existe
-            escreverEmOrdem(node->esq, out); // recursivamente ir até o menor item, o que está mais à esquerda
-            out << node->contato.nome << ',' << node->contato.telefone << ',' << node->contato.email << endl; // imprimir o conteúdo do pai
-            escreverEmOrdem(node->dir, out); // repetir para o ramo irmão da direita
+    void escreverEmOrdem(Node* node, ofstream& out) {
+        if (node != nullptr) {
+            escreverEmOrdem(node->esq, out);
+            out << node->contato.nome << ',' << node->contato.telefone << ',' << node->contato.email << endl;
+            escreverEmOrdem(node->dir, out);
         }
     }
 };
 
-int main(){
+int main() {
     ArvoreAvl arvere = ArvoreAvl();
-    list<Contato> favoritos;   // lista dos contatos favoritos (copias dos dados nas árvores)
-    // [em um caso da exclusão da árvore, um contato é copiado de um node para o outro sem que aquele [node] troque de lugar com este, sendo apenas excuído;
-    // em consequencia, dados referenciados por ponteiros podem ser afetados;
-    // de inicio eu queria que os favoritos fossem ponteiros dos contatos, mas vi que seria mais seguro esta lista conter cópias dos contatos ao invés disso; 
-    // de outro modo, eu deveria reformular o trecho em questão algoritmo de remoção, mas não sei como]
+    list<Contato> favoritos;
+    // ToDo: revisitar a funcionalidade de favoritos
 
     char opcao;
-    while (opcao != '0'){ // voltar ao menu se não optar por sair
+    while (opcao != '0') {
         cout << "[MENU PRINCIPAL] Escolha uma opção: " << endl;
         cout << "[1] Inserir contato;" << endl 
             << "[2] Remover contato;" << endl
@@ -330,58 +326,61 @@ int main(){
             << "[0] Sair;" << endl;
         cin >> opcao;
         cin.ignore();
-        if (opcao == '1'){ // inserção
+
+        if (opcao == '1') { // inserção
             string nome, telefone, email;
             cout << "Digite os dados do contato" << endl;
-            cout << "Nome: "; // receber os dados
+            cout << "Nome: ";
             getline(cin, nome);
             cout << "Telefone: ";
             getline(cin, telefone);
             cout << "E-mail: ";
             getline(cin, email);
 
-            Contato contato = Contato(nome,telefone,email); // criar o objeto
-            arvere.inserir(contato); // inserir o objeto
-        } else if (opcao == '2'){ // remoção
+            Contato contato = Contato(nome,telefone,email);
+            arvere.inserir(contato);
+        } else if (opcao == '2') { // remoção
             string nome;
             cout << "Nome do contato: ";
-            getline(cin, nome); // receber o nome
-            for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){ // iterar pela lista para remover o favorito correspondente
-                if (compararStrings((*iter).nome, nome) == 0){
+            getline(cin, nome); 
+            for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter) { 
+                if (compararStrings((*iter).nome, nome) == 0) {
                     favoritos.erase(iter);
                     break;
                 }
             }
-            arvere.remover(nome); // apagar o contato com o nome
+            arvere.remover(nome);
 
-        } else if (opcao == '3'){ // busca
+        } else if (opcao == '3') { // busca
             string nome;
             cout << "Nome do contato: ";
-            getline(cin, nome); // receber o nome
-            Contato* contato = arvere.buscar(nome); // buscar pelo nome
-            if (contato != NULL) // há item com esse nome, imprimir os dados
+            getline(cin, nome); 
+            Contato* contato = arvere.buscar(nome);
+            if (contato != NULL) {
                 cout << "Nome: " << contato->nome << ";\t Telefone: " << contato->telefone << ";\t E-mail:" << contato->email << ";" << endl;
-            else // não há item com esse nome;
+            } else {  
                 cout << "Não encontrado" << endl;
-        } else if (opcao == '4'){ // listagem
+            }
+        } else if (opcao == '4') { // listagem
             cout << "[LISTAGEM] Escolha o tipo de leitura: " << endl 
                 << "[1] Em ordem;" << endl 
                 << "[2] Pré-ordem;" << endl 
                 << "[3] Pós-ordem;" << endl;
             char opcaoLista;
-            cin >> opcaoLista; // escolha das opções de leitura
-            if (opcaoLista == '1'){ // leitura em ordem
+            cin >> opcaoLista; 
+            if (opcaoLista == '1') { 
                 cout << "CONTATOS: " << endl;
                 arvere.leituraEmOrdem(); 
-            }else if (opcaoLista == '2'){ // leitura pre-ordem
+            }else if (opcaoLista == '2') { 
                 cout << "CONTATOS: " << endl;
                 arvere.leituraPreOrdem();
-            }else if (opcaoLista == '3'){ // leitura pos-ordem
+            }else if (opcaoLista == '3') { 
                 cout << "CONTATOS: " << endl;
                 arvere.leituraPosOrdem();
-            } else
+            } else {
                 cout << "Opção inválida!" << endl;
-        } else if (opcao == '5'){ // favoritos
+            }
+        } else if (opcao == '5') { // favoritos
             cout << "[FAVORITOS] Escolha uma opção: " << endl 
                 << "[1] Adicionar contato favorito;" << endl 
                 << "[2] Remover dos favoritos;" << endl 
@@ -390,39 +389,39 @@ int main(){
             char opcaoFavs;
             cin >> opcaoFavs;
             cin.ignore();
-            if (opcaoFavs == '1'){ // adição
+            if (opcaoFavs == '1') { // adição
                 string nome;
                 cout << "Nome do contato: ";
-                getline(cin, nome); // receber o nome
-                favoritos.push_front(*arvere.buscar(nome)); // buscar na árvore e incluir na lista
-            } else if (opcaoFavs == '2'){ // remoção
+                getline(cin, nome); 
+                favoritos.push_front(*arvere.buscar(nome));
+            } else if (opcaoFavs == '2') { // remoção
                 string nome;
                 cout << "Nome do contato: ";
-                getline(cin, nome); // receber o nome
-                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){ // iterar pela lista e removê-lo
+                getline(cin, nome);
+                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter) { 
                     if (compararStrings((*iter).nome, nome) == 0){
                         favoritos.erase(iter);
                         break;
                     }
                 }
-            } else if (opcaoFavs == '3'){ // busca
+            } else if (opcaoFavs == '3') { // busca
                 string nome;
                 cout << "Nome do contato: ";
-                getline(cin, nome); // receber o nome
+                getline(cin, nome);
                 Contato* contato;
-                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){ // itera a lista em busca do nome
+                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){
                     if (compararStrings(iter->nome, nome) == 0){
                         contato = &(*iter);
                         break;
                     }
                 }
-                if (contato != NULL) // favorito encontrado; imprimir dados
+                if (contato != NULL)
                     cout << "Nome: " << contato->nome << ";\t Telefone: " << contato->telefone << ";\t E-mail:" << contato->email << ";" << endl;
-                else // favorito não encontrado
+                else
                     cout << "Não encontrado" << endl;
             } else if (opcaoFavs == '4'){ // listagem
                 cout << "FAVORITOS" << endl; 
-                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){ // itera e imprime os favoritos
+                for (auto iter = favoritos.begin(); iter != favoritos.end(); ++iter){
                     cout << (*iter).nome << endl;
                 }
             } else
